@@ -1,0 +1,38 @@
+name: Use composite action in a public repo
+
+on: 
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  CALLER_ENV: "An environment variable in the caller workflow."
+
+jobs:
+  use-composite-action:
+    name: Use Composite Action in the same Repo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: First step is just a warm greeting
+        run: echo "Hi"
+
+      - name: Access secrets in the caller workflow
+        run: echo "SECRET0 is:${{secrets.SECRET0}}"
+
+      # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-a-public-action
+      # uses: {owner}/{repo}/{path}@{ref}
+      - name: Use composite action
+        id: composite-action
+        uses: softcat477/composite-action/.github/composite-action@v1.0.0
+        env:
+          ASSIGNED_ENV: "An environment variable assigned to composite actions"
+        with:
+          input1: "An input assigned to composite actions"
+
+      - name: Print the single-line from the composite action
+        run: echo "The single-line output is:${{steps.composite-action.outputs.composite-action-out1}}"
+
+      - name: Print the multi-line from the composite action
+        run: echo 'The multi-line output is:${{steps.composite-action.outputs.composite-action-out2}}'
